@@ -1,1 +1,1 @@
-# INSPIREPolygonsDownloader
+# INSPIRE Polygons Downloader
