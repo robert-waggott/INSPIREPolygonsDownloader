@@ -1,0 +1,15 @@
+{
+  "name": "INSPIREPolygonsDownloader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "robert-waggott",
+  "license": "MIT",
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.4.2",
+    "unzip": "^0.1.11",
+    "unzip2": "^0.2.5",
+    "xml2json": "^0.8.2"
+  }
+}
