@@ -1,3 +1,3 @@
 var downloader = require('./index.js')();
 
-downloader.download(["Blaby"]);
+downloader.download(["Blaby", "Uttlesford"]);
