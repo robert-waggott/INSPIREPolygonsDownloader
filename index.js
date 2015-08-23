@@ -3,53 +3,61 @@ module.exports = function() {
    	var http = require("http");
 	var fs = require("fs");
     var mkdirp = require("mkdirp");
+	var moment = require("moment");    
     var parser = require("xml2json");
 	var path = require("path");
-    var rimraf = require("rimraf");
     var unzip = require("yauzl");
     var osGridRef = require('geodesy').OsGridRef;
 
     var downloadsPath = "./Downloads/";
-	var fromDate;
-	var downloadDeferred;
 
-    var download = function(areas, fromDate) {
+    var download = function(areas, fromDate, returnAsGeoJson) {
 		if (!areas || !Array.isArray(areas) || areas.length == 0) {
 			throw "Please specify at least one area to download";
 		}
 
-		downloadDeferred = new defer();
-		fromDate = fromDate;
-
-		rimraf.sync(downloadsPath);
+		var count = 0;
+		var deferred = defer();
+		var output = [];
 
 		mkdirp(downloadsPath, function() {
-			mkdirp(path.join(downloadsPath, "gml"), function() {
-				areas.forEach(function(area) {
-					downloadArea(area).then(function() {
-						// unzip then
-						// read
+			areas.forEach(function(area) {
+				downloadArea(area).then(function(response) {
+					var zipFile = downloadsPath + area + ".zip";
+
+					downloadResponse(zipFile, response).then(function() {
+						extractGMLFile(zipFile).then(function(gmlFile) {
+							processGMLFile(gmlFile, fromDate, returnAsGeoJson).then(function(data) {
+								count++;
+
+								fs.unlinkSync(zipFile);
+								fs.unlinkSync(gmlFile);
+
+								output = output.concat(data);
+
+								if (count === areas.length) {
+									deferred.resolve(output);
+								}
+							});
+						});
 					});
 				});
 			});
 		});
 
-		return downloadDeferred;
+		return deferred;
     };
 
     var downloadArea = function(area) {
 	    var deferred = defer();
-		var filename = area + ".zip";
-		var url = "http://data.inspire.landregistry.gov.uk/" + filename;
+		var url = "http://data.inspire.landregistry.gov.uk/" + area + ".zip";
 
 		http.get(url, function(response) {
 			if (response.statusCode !== 200) {
 				throw "Problem downloading " + area + ", please make sure the name corresponds with a polygon dataset";
 			}
 
-			downloadResponse(filename, response).then(function () {
-				unzipGMLFiles().then(readGMLFiles);
-			});
+			deferred.resolve(response);
 		});
 
 		return deferred;   	
@@ -57,8 +65,7 @@ module.exports = function() {
 
     var downloadResponse = function(filename, response) {
 		var deferred = defer();
-		var destination = path.join(downloadsPath, filename);
-		var file = fs.createWriteStream(destination);
+		var file = fs.createWriteStream(filename);
 
 	    response
 	    	.on("data", function(data) {
@@ -75,41 +82,29 @@ module.exports = function() {
 		return deferred;
     };
 
-    var unzipGMLFiles = function() {
+    var extractGMLFile = function(filename) {
 	    var deferred = defer();
-	    var files = fs.readdirSync(downloadsPath).filter(function(file) {
-	    	return path.extname(file).toLowerCase() === ".zip";
-	    });
-	    var count = 0;
+    	var extractToPath = filename.toLowerCase().replace(".zip", ".gml");
 
-	    files.forEach(function(name) {
-	    	var fullFilename = path.join(downloadsPath, name);	    	
-	    	var extractToPath = path.join(downloadsPath, "gml", path.basename(name, ".zip") + ".gml");
+		unzip.open(filename, function(error, zipfile) {
+			if (error) {
+				throw error;	
+			} 
+			
+			zipfile.on("entry", function(entry) {
+				if (path.extname(entry.fileName).toLowerCase() !== ".gml") {
+					return;
+				}
 
-			unzip.open(fullFilename, function(error, zipfile) {
-				if (error) {
-					throw error;	
-				} 
-				
-				zipfile.on("entry", function(entry) {
-					if (path.extname(entry.fileName).toLowerCase() !== ".gml") {
-						return;
-					}
+				zipfile.openReadStream(entry, function(error, readStream) {
+  					if (error) {
+  						throw error;
+  					}
 
-					zipfile.openReadStream(entry, function(error, readStream) {
-	  					if (error) {
-	  						throw error;	
-	  					}
-
-						readStream.pipe(fs.createWriteStream(extractToPath));
-
-						console.log("extracted " + extractToPath);
-
-						count++;
-
-						if (count === files.length) {
-							deferred.resolve();
-						}
+					var pipe = readStream.pipe(fs.createWriteStream(extractToPath));
+					
+					pipe.on("finish", function() {
+						deferred.resolve(extractToPath);
 					});
 				});
 			});
@@ -118,59 +113,57 @@ module.exports = function() {
 	    return deferred;
     };
 
-    var readGMLFiles = function() {
-    	var directory = path.join(downloadsPath, "gml");
+    var processGMLFile = function(file, fromDate, returnAsGeoJson) {
+        var deferred = defer();
 
-    	fs.readdir(directory, function(error, files) {
-    		var data = {};
-    		var numberOfExtractedFiles = 0;
+        fs.readFile(file, "utf-8", function(error, xml) {
+    		if (error) { 
+				throw error; 
+    		}
 
-		    files.forEach(function(file) {
-	    		console.log(directory + file);
+			var json = parser.toJson(xml, {
+				object: true
+			});
+			var members = json["wfs:FeatureCollection"]["wfs:member"].map(function(member) {
+				var id = member["LR:PREDEFINED"]["LR:INSPIREID"];
+				var eNs = member["LR:PREDEFINED"]["LR:GEOMETRY"]["gml:Polygon"]["gml:exterior"]["gml:LinearRing"]["gml:posList"];
+				var validFrom = member["LR:PREDEFINED"]["LR:VALIDFROM"];
+				var cadastralReference = member["LR:PREDEFINED"]["LR:NATIONALCADASTRALREFERENCE"];
 
-		        fs.readFile(directory + "/" + file, "utf-8", function(error, xml) {
-            		if (error) { 
-    					throw error; 
-		    		}
+				if (eNs["$t"]) {
+					eNs = eNs["$t"];
+				}
 
-					numberOfExtractedFiles++;
+				var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
+				var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
+					return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing))
+				});
 
-					var json = parser.toJson(xml, {
-						object: true
-					});
-					var members = json["wfs:FeatureCollection"]["wfs:member"].map(function(member) {
-						var id = member["LR:PREDEFINED"]["LR:INSPIREID"];
-						var eNs = member["LR:PREDEFINED"]["LR:GEOMETRY"]["gml:Polygon"]["gml:exterior"]["gml:LinearRing"]["gml:posList"];
-						var validFrom = member["LR:PREDEFINED"]["LR:VALIDFROM"];
-						var cadastralReference = member["LR:PREDEFINED"]["LR:NATIONALCADASTRALREFERENCE"];
+				return {
+					id: id,
+					geometry: eastingsAndNorthings,
+					latLongs: latLongs,
+					cadastralReference: cadastralReference,
+					validFrom: validFrom
+				}
+			}).filter(function(member) {
+				var fromDateMoment = moment(fromDate);
 
-						if (eNs["$t"]) {
-							eNs = eNs["$t"];
-						}
+				if (!fromDateMoment.isValid()) {
+					return true;
+				}
 
-						var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
-						var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
-							return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing))
-						});
+				return moment(member.validFrom) <= fromDateMoment;
+			});
 
-						return {
-							id: id,
-							geometry: eastingsAndNorthings,
-							latLongs: latLongs,
-							cadastralReference: cadastralReference,
-							validFrom: validFrom
-						}
-					});
+			if (returnAsGeoJson) {
+				// todo: convert to geojson.
+			}
 
-					// todo: filter out according to from date. 
-					// todo: convert to geojson. 
+			deferred.resolve(members);
+        });
 
-		            if (numberOfExtractedFiles === files.length) {
-		                console.log(data);
-		            }
-		        });
-		    });    		
-		});
+		return deferred;
     };
 
     var getArrayOfEastingsAndNorthings = function(spaceDelimitedString) {
