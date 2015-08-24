@@ -11,7 +11,13 @@ module.exports = function() {
 
     var downloadsPath = "./Downloads/";
 
-    var download = function(areas, fromDate, returnAsGeoJson) {
+    var download = function(options) {
+		if (!options) {
+			throw "";
+		}
+
+		var areas = options.areas;
+
 		if (!areas || !Array.isArray(areas) || areas.length == 0) {
 			throw "Please specify at least one area to download";
 		}
@@ -27,7 +33,7 @@ module.exports = function() {
 
 					downloadResponse(zipFile, response).then(function() {
 						extractGMLFile(zipFile).then(function(gmlFile) {
-							processGMLFile(gmlFile, fromDate, returnAsGeoJson).then(function(data) {
+							processGMLFile(gmlFile, options.fromDate, options.geoJson).then(function(data) {
 								count++;
 
 								fs.unlinkSync(zipFile);
@@ -36,7 +42,15 @@ module.exports = function() {
 								output = output.concat(data);
 
 								if (count === areas.length) {
-									deferred.resolve(output);
+									if (options.geoJson) {
+										deferred.resolve({ 
+											type: "FeatureCollection",
+											features: output
+										});
+									}
+									else {
+										deferred.resolve(output);
+									}
 								}
 							});
 						});
@@ -124,29 +138,7 @@ module.exports = function() {
 			var json = parser.toJson(xml, {
 				object: true
 			});
-			var members = json["wfs:FeatureCollection"]["wfs:member"].map(function(member) {
-				var id = member["LR:PREDEFINED"]["LR:INSPIREID"];
-				var eNs = member["LR:PREDEFINED"]["LR:GEOMETRY"]["gml:Polygon"]["gml:exterior"]["gml:LinearRing"]["gml:posList"];
-				var validFrom = member["LR:PREDEFINED"]["LR:VALIDFROM"];
-				var cadastralReference = member["LR:PREDEFINED"]["LR:NATIONALCADASTRALREFERENCE"];
-
-				if (eNs["$t"]) {
-					eNs = eNs["$t"];
-				}
-
-				var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
-				var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
-					return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing))
-				});
-
-				return {
-					id: id,
-					geometry: eastingsAndNorthings,
-					latLongs: latLongs,
-					cadastralReference: cadastralReference,
-					validFrom: validFrom
-				}
-			}).filter(function(member) {
+			var members = json["wfs:FeatureCollection"]["wfs:member"].map(mungeGMLMember).filter(function(member) {
 				var fromDateMoment = moment(fromDate);
 
 				if (!fromDateMoment.isValid()) {
@@ -157,7 +149,7 @@ module.exports = function() {
 			});
 
 			if (returnAsGeoJson) {
-				// todo: convert to geojson.
+				members = members.map(castMemberToGeoJsonFeature)
 			}
 
 			deferred.resolve(members);
@@ -165,6 +157,51 @@ module.exports = function() {
 
 		return deferred;
     };
+
+    var mungeGMLMember = function(member) {
+		var id = member["LR:PREDEFINED"]["LR:INSPIREID"];
+		var eNs = member["LR:PREDEFINED"]["LR:GEOMETRY"]["gml:Polygon"]["gml:exterior"]["gml:LinearRing"]["gml:posList"];
+		var validFrom = member["LR:PREDEFINED"]["LR:VALIDFROM"];
+		var cadastralReference = member["LR:PREDEFINED"]["LR:NATIONALCADASTRALREFERENCE"];
+
+		if (eNs["$t"]) {
+			eNs = eNs["$t"];
+		}
+
+		var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
+		var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
+			return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing))
+		});
+
+		return {
+			id: id,
+			geometry: eastingsAndNorthings,
+			latLongs: latLongs,
+			cadastralReference: cadastralReference,
+			validFrom: validFrom
+		}
+	};
+
+	var castMemberToGeoJsonFeature = function(member) {
+		var latLongs = member.latLongs.map(function(latLong) {
+			return [latLong.lat, latLong.lon];
+		});
+
+		return { 
+			type: "Feature",
+         	geometry: {
+           		type: "Polygon",
+           		coordinates: [
+             		latLongs
+             	]
+         	},
+         	properties: {
+           		id: member.id,
+           		cadastralReference: member.cadastralReference,
+           		validFrom: member.validFrom
+           	}
+         };
+	};
 
     var getArrayOfEastingsAndNorthings = function(spaceDelimitedString) {
 		var list = spaceDelimitedString.split(" ");

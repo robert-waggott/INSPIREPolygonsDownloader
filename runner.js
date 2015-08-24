@@ -1,3 +1,8 @@
 var downloader = require('./index.js')();
 
-downloader.download(["Blaby", "Uttlesford"]);
+downloader.download({
+	areas: ["Blaby", "Uttlesford"],
+	geoJson: true
+}).then(function(data) {
+	console.log(JSON.stringify(data));
+});
