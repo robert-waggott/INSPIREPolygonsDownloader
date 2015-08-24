@@ -1,4 +1,6 @@
 module.exports = function() {
+	"use strict";
+
 	var defer = require("node-promise").defer;
    	var http = require("http");
 	var fs = require("fs");
@@ -18,7 +20,7 @@ module.exports = function() {
 
 		var areas = options.areas;
 
-		if (!areas || !Array.isArray(areas) || areas.length == 0) {
+		if (!areas || !Array.isArray(areas) || areas.length === 0) {
 			throw "Please specify at least one area to download";
 		}
 
@@ -149,7 +151,7 @@ module.exports = function() {
 			});
 
 			if (returnAsGeoJson) {
-				members = members.map(castMemberToGeoJsonFeature)
+				members = members.map(castMemberToGeoJsonFeature);
 			}
 
 			deferred.resolve(members);
@@ -170,7 +172,7 @@ module.exports = function() {
 
 		var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
 		var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
-			return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing))
+			return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing));
 		});
 
 		return {
@@ -179,7 +181,7 @@ module.exports = function() {
 			latLongs: latLongs,
 			cadastralReference: cadastralReference,
 			validFrom: validFrom
-		}
+		};
 	};
 
 	var castMemberToGeoJsonFeature = function(member) {
@@ -220,4 +222,4 @@ module.exports = function() {
     return {
     	"download": download
     };
-}
+};
