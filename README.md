@@ -2,7 +2,7 @@
 
 > Downloads and munges [Land registry INSPIRE polygons](https://www.gov.uk/inspire-index-polygons-spatial-data) so thay can be easily mapped and/or traversed. 
 
-###Usage:
+### Usage:
 
 ```
 var downloader = require('inspire-downloader')();
@@ -17,16 +17,16 @@ downloader.download(options).then(function(data) {
 });
 ```
 
-###Options:
+### Options:
 
-####areas
+#### areas
 
 * Type: `array of strings`
 * Required: `Yes`
 
 The list of areas to download, should match the format of `http://data.inspire.landregistry.gov.uk/{area}.zip`. 
 
-####fromDate
+#### fromDate
 
 * Type: `Date`
 * Required: `No`
@@ -34,7 +34,7 @@ The list of areas to download, should match the format of `http://data.inspire.l
 
 To filter out the list of polygons according to the polygon's from date. 
 
-####geoJson
+#### geoJson
 
 * Type: `Date`
 * Required: `No`
@@ -42,7 +42,7 @@ To filter out the list of polygons according to the polygon's from date.
 
 Whether or not to return the output in [geo json format](http://geojson.org/geojson-spec.html#examples) or as a plain array of polygon data (see below for more detail). 
 
-###Returns:
+### Returns:
 
 `download()` returns a deferred. The deferred callback has one parameter, `data`, depending on the `geoJson` option this data is either [geojson](http://geojson.org/geojson-spec.html#examples) of polygons with the following additional properties:
 
@@ -58,13 +58,13 @@ If `geoJson` is false `data` is an array of objects, each object has the followi
 * cadastralReference
 * validFrom
 
-###Further information:
+### Further information:
 
 * [Background about INSPIRE](http://data.gov.uk/location/inspire)
 * [INSPIRE data - Conditions of use](https://www.gov.uk/inspire-index-polygons-spatial-data) (can be found at the bottom of the page)
 * [OGL - Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 * [Movable Type - Convert between Latitude/Longitude & OS National Grid References](http://www.movable-type.co.uk/scripts/latlong-gridref.html) - the key algorithm used to convert the GML to latatidue and longitude coordinates so it can be mapped. 
 
-###Mapper:
+### Mapper:
 
 [github.com/robert-waggott/INSPIREPolygonsMapper](https://github.com/robert-waggott/INSPIREPolygonsMapper) is intended as a working example of how to use this package. 

@@ -1,14 +1,22 @@
 {
-  "name": "INSPIREPolygonsDownloader",
-  "version": "1.0.0",
-  "description": "",
+  "name": "inspirepolygonsdownloader",
+  "description": "Downloads and munges Land registry INSPIRE polygons so thay can be easily mapped and/or traversed.",  
+  "homepage": "https://github.com/robert-waggott/INSPIREPolygonsDownloader",  
+  "version": "1.0.2",
   "main": "index.js",
-  "author": "robert-waggott",
+  "author": {
+    "name": "robert.waggott",
+    "email": "robert.waggott@gmail.com",
+    "url": "https://github.com/robert-waggott"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/robert-waggott/XamarinInsightsDYSMUploadGruntPlugin.git"
+    "url": "https://github.com/robert-waggott/INSPIREPolygonsDownloader.git"
   },
+  "bugs": {
+    "url": "https://github.com/robert-waggott/INSPIREPolygonsDownloader/issues"
+  },  
   "dependencies": {
     "geodesy": "^1.0.2",
     "mkdirp": "^0.5.1",
@@ -16,5 +24,15 @@
     "node-promise": "^0.5.12",
     "xml2json": "^0.8.2",
     "yauzl": "^2.3.1"
-  }
+  },
+  "keywords": [
+    "inspire",
+    "land-regstry",
+    "land use",
+    "mapping",
+    "maps",
+    "polygons",
+    "geojson",
+    "cadastral"
+  ]  
 }
