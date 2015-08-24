@@ -1,6 +1,6 @@
 # INSPIRE Polygons Downloader
 
-See runner.js for usage example.
+> Downloads and munges [Land registry INSPIRE polygons](https://www.gov.uk/inspire-index-polygons-spatial-data) so thay can be easily mapped and/or traversed. 
 
 ###Usage:
 
