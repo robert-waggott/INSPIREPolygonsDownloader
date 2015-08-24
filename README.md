@@ -64,3 +64,5 @@ If `geoJson` is false `data` is an array of objects, each object has the followi
 * [INSPIRE data - Conditions of use](https://www.gov.uk/inspire-index-polygons-spatial-data) (can be found at the bottom of the page)
 * [OGL - Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 * [Movable Type - Convert between Latitude/Longitude & OS National Grid References](http://www.movable-type.co.uk/scripts/latlong-gridref.html) - the key algorithm used to convert the GML to latatidue and longitude coordinates so it can be mapped. 
+
+[github.com/robert-waggott/INSPIREPolygonsMapper](https://github.com/robert-waggott/INSPIREPolygonsMapper) is intended as a working example of how to use this package. 
