@@ -44,6 +44,20 @@ Whether or not to return the output in [geo json format](http://geojson.org/geoj
 
 ###Returns:
 
+`download()` returns a deferred. The deferred callback has one parameter, `data`, depending on the `geoJson` option this data is either [geojson](http://geojson.org/geojson-spec.html#examples) of polygons with the following additional properties:
+
+* id - The Inspire Id. 
+* cadastralReference
+* validFrom
+
+If `geoJson` is false `data` is an array of objects, each object has the following members:
+
+* id - The Inspire Id. 
+* geometry - An array of eastings and northings
+* latLongs - An array of latitude/longitudes
+* cadastralReference
+* validFrom
+
 ###Further information:
 
 * [Background about INSPIRE](http://data.gov.uk/location/inspire)
