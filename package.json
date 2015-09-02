@@ -1,8 +1,8 @@
 {
   "name": "inspirepolygonsdownloader",
-  "description": "Downloads and munges Land registry INSPIRE polygons so thay can be easily mapped and/or traversed.",  
-  "homepage": "https://github.com/robert-waggott/INSPIREPolygonsDownloader",  
-  "version": "1.0.2",
+  "description": "Downloads and munges Land registry INSPIRE polygons so thay can be easily mapped and/or traversed.",
+  "homepage": "https://github.com/robert-waggott/INSPIREPolygonsDownloader",
+  "version": "1.0.3",
   "main": "index.js",
   "author": {
     "name": "robert.waggott",
@@ -16,8 +16,9 @@
   },
   "bugs": {
     "url": "https://github.com/robert-waggott/INSPIREPolygonsDownloader/issues"
-  },  
+  },
   "dependencies": {
+    "colors": "^1.1.2",
     "geodesy": "^1.0.2",
     "mkdirp": "^0.5.1",
     "moment": "^2.10.6",
@@ -34,5 +35,5 @@
     "polygons",
     "geojson",
     "cadastral"
-  ]  
+  ]
 }

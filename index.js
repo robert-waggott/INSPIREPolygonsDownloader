@@ -1,9 +1,10 @@
 module.exports = function() {
 	"use strict";
 
+	var colors = require("colors");
 	var defer = require("node-promise").defer;
-   	var http = require("http");
 	var fs = require("fs");
+   	var http = require("http");
     var mkdirp = require("mkdirp");
 	var moment = require("moment");    
     var parser = require("xml2json");
@@ -13,6 +14,12 @@ module.exports = function() {
 
     var downloadsPath = "./Downloads/";
 
+	colors.setTheme({
+		info: "green",
+		warn: "yellow",
+		error: "red"
+	});
+
     var download = function(options) {
 		if (!options) {
 			throw "";
@@ -21,7 +28,8 @@ module.exports = function() {
 		var areas = options.areas;
 
 		if (!areas || !Array.isArray(areas) || areas.length === 0) {
-			throw "Please specify at least one area to download";
+			console.error("Please specify at least one area to download".error);
+			return;
 		}
 
 		var count = 0;
@@ -88,7 +96,7 @@ module.exports = function() {
 				file.write(data);
 			})
 			.on("end", function() {
-				console.log("downloaded " + filename);
+				console.log(("downloaded " + filename).info);
 
 				file.end();
 
