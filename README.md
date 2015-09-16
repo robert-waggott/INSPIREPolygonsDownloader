@@ -5,7 +5,7 @@
 ### Usage:
 
 ```
-var downloader = require('inspire-downloader')();
+var downloader = require('inspirepolygonsdownloader')();
 var options = {
     areas: ["Blaby", "Uttlesford"],
     fromDate: "2015-04-03",
