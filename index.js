@@ -194,7 +194,7 @@ module.exports = function() {
 
 	var castMemberToGeoJsonFeature = function(member) {
 		var latLongs = member.latLongs.map(function(latLong) {
-			return [latLong.lat, latLong.lon];
+			return [latLong.lon, latLong.lat];
 		});
 
 		return { 
