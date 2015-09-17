@@ -181,8 +181,6 @@ module.exports = function() {
 		var eastingsAndNorthings = getArrayOfEastingsAndNorthings(eNs);
 
 		var latLongs = eastingsAndNorthings.map(function(eastingAndNorthing) {
-			console.log(eastingAndNorthing);
-
 			return osGridRef.osGridToLatLon(new osGridRef(eastingAndNorthing.easting, eastingAndNorthing.northing));
 		});
 

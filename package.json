@@ -2,7 +2,7 @@
   "name": "inspirepolygonsdownloader",
   "description": "Downloads and munges Land registry INSPIRE polygons so thay can be easily mapped and/or traversed.",
   "homepage": "https://github.com/robert-waggott/INSPIREPolygonsDownloader",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "index.js",
   "author": {
     "name": "robert.waggott",
