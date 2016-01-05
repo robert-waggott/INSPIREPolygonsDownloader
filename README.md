@@ -2,6 +2,8 @@
 
 > Downloads and munges [Land registry INSPIRE polygons](https://www.gov.uk/inspire-index-polygons-spatial-data) so thay can be easily mapped and/or traversed. 
 
+*This is for private use only. See the INSPIRE [Conditions of use](https://www.gov.uk/guidance/inspire-index-polygons-spatial-data#conditions-of-use) before using.*
+
 ### Usage:
 
 ```
